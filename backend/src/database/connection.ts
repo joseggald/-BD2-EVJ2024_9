@@ -1,6 +1,9 @@
 import mongoose, { Connection, Schema } from "mongoose";
 import { IInstanceInfo } from "./dbInfo";
+import { bookSchema } from "../schemas/books";
+import { reviewSchema } from "../schemas/review";
 const { ObjectId } = require('mongodb');
+
 export default class MongoConnection {
     // Conexion a la base de datos
     conn: Connection;
@@ -19,27 +22,6 @@ export default class MongoConnection {
         const URI = `mongodb+srv://${instance.USER}:${instance.PASSWORD}@${instance.HOST}/?retryWrites=true&w=majority&appName=ProjectsEnviroment`;
         this.conn = mongoose.createConnection(URI, { dbName: instance.DATABASE });
         console.log(`Connected to ${instance.DATABASE}`);
-
-        // Initial Schema
-        const reviewSchema = new mongoose.Schema({
-            user_uid: { type: Schema.Types.ObjectId, required: true },
-            content: { type: String, required: true },
-            rating: { type: Number, required: true },
-            created_on: { type: Date, default: Date.now },
-            book_uid: { type: Schema.Types.ObjectId, required: true }
-        });
-        const bookSchema = new mongoose.Schema({
-            title: { type: String, required: true },
-            author_uid: { type: Schema.Types.ObjectId, required: true },
-            description: { type: String, required: true },
-            genre : { type: String, required: true },
-            released_date: { type: Date, required: true },
-            available : { type: Boolean, required: true },
-            stock : { type: Number, required: true },
-            rating: { type: Number, required: true , default: 0}, 
-            price : { type: Number, required: true },
-            image_url : { type: String, required: true } 
-        });
 
         // MONGODB SCHEMAS
         this.usersModel = this.conn.model('users', new mongoose.Schema());
