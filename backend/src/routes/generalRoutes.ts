@@ -178,6 +178,59 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
+    router.post('/addBook', async (req, res) => {
+        try {
+            const { title, author_uid, description, genre, released_date, available, stock, price, image_url } = req.body;
+            const newBook = await mongoConnection.addBook(title, author_uid, description, genre, released_date, available, stock, price, image_url);
+            if (newBook) {
+                res.json({ message: 'Book added successfully', book: newBook });
+            } else {
+                res.status(409).json({ error: 'Book with the same title and author already exists' }); 
+            }
+        } catch (error: unknown) {
+            console.error('Error adding book:', error); 
+            res.status(500).json({ error: 'Error adding book' });
+        }
+    });
+    
+    router.put('/updateBook/:id', async (req, res) => {
+        try {
+            const { id } = req.params;
+            const updates = req.body; 
+            const updatedBook = await mongoConnection.updateBook(id, updates);
+            if (updatedBook) {
+                res.json({ message: 'Book updated successfully', book: updatedBook });
+            } else {
+                res.status(404).json({ error: 'Book not found' });
+            }
+        } catch (error: unknown) {
+            console.error('Error updating book:', error); 
+            res.status(500).json({ error: 'Error updating book' });
+        }
+    });
+    
+    router.delete('/deleteBook/:id', async (req, res) => {
+        try {
+            const { id } = req.params;
+            const deletedBook = await mongoConnection.deleteBook(id);
+            if (deletedBook) {
+                res.json({ message: 'Book deleted successfully', book: deletedBook });
+            } else {
+                res.status(404).json({ error: 'Book not found' });
+            }
+        } catch (error: unknown) {
+            console.error('Error deleting book:', error);
+            res.status(500).json({ error: 'Error deleting book' });
+        }
+    });
+    
+    
+    
+    
+    
+    
+
+
     return router;
 }
 

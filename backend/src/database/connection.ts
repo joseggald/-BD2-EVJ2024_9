@@ -33,7 +33,8 @@ export default class MongoConnection {
             author_uid: { type: Schema.Types.ObjectId, required: true },
             description: { type: String, required: true },
             genre : { type: String, required: true },
-            released_date: { type: Date, required: true },
+            //released_date: { type: Date, required: true },
+            released_date: { type: String, required: true }, // Cambiado a String
             available : { type: Boolean, required: true },
             stock : { type: Number, required: true },
             rating: { type: Number, required: true , default: 0}, 
@@ -159,5 +160,85 @@ export default class MongoConnection {
             throw error;
         }
     }
+
+    async addBook(title: string, author_uid: string, description: string, genre: string, released_date: string, available: boolean, stock: number, price: number, image_url: string) {
+        try {
+            // Verifica la existencia de un libro para no generar duplicados
+            const existingBook = await this.booksModel.findOne({ title, author_uid });
+            if (existingBook) {
+                return null; // Devolver null si el libro ya existe
+            }
+    
+            const newBook = await this.booksModel.create({
+                title,
+                author_uid,
+                description,
+                genre,
+                released_date, //string
+                available,
+                stock,
+                rating: 0, // Inicialmente, el rating es 0
+                price,
+                image_url
+            });
+            return newBook.toJSON();
+        } catch (error) {
+            console.error('Error adding book:', error);
+            throw new Error('Error adding book');
+        }
+    }
+    
+    
+    async updateBook(id: string, updates: Partial<{ title: string, author_uid: string, description: string, genre: string, released_date: string, available: boolean, stock: number, price: number, image_url: string }>) {
+        try {
+            // Verificar que el libro existe
+            const existingBook = await this.booksModel.findById(id);
+            if (!existingBook) {
+                return null; // Devolver null si el libro no existe
+            }
+    
+            // Verificar si el nuevo título y autor ya existen en otro libro
+            if (updates.title && updates.author_uid) {
+                const duplicateBook = await this.booksModel.findOne({ title: updates.title, author_uid: updates.author_uid, _id: { $ne: id } });
+                if (duplicateBook) {
+                    throw new Error('El libro con el mismo título y autor ya existe.');
+                }
+            }
+    
+            // Mantener los valores existentes si los nuevos valores no son proporcionados
+            const updatedData = {
+                title: updates.title || existingBook.title,
+                author_uid: updates.author_uid || existingBook.author_uid,
+                description: updates.description || existingBook.description,
+                genre: updates.genre || existingBook.genre,
+                released_date: updates.released_date || existingBook.released_date, 
+                available: updates.available !== undefined ? updates.available : existingBook.available,
+                stock: updates.stock !== undefined ? updates.stock : existingBook.stock,
+                price: updates.price !== undefined ? updates.price : existingBook.price,
+                image_url: updates.image_url || existingBook.image_url
+            };
+    
+            const updatedBook = await this.booksModel.findByIdAndUpdate(id, updatedData, { new: true });
+            if (!updatedBook) {
+                throw new Error('Error actualizando el libro.');
+            }
+            return updatedBook.toJSON();
+        } catch (error) {
+            console.error('Error updating book:', error);
+            throw error;
+        }
+    }
+    
+    
+    async deleteBook(id: string) {
+        try {
+            const deletedBook = await this.booksModel.findByIdAndDelete(id);
+            return deletedBook ? deletedBook.toJSON() : null;
+        } catch (error) {
+            console.error('Error deleting book:', error);
+            throw new Error('Error deleting book');
+        }
+    }
+    
     
 }
