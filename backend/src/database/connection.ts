@@ -49,6 +49,7 @@ export default class MongoConnection {
     async login(email:string, password:string) {
         const user = await this.usersModel.findOne({ email, password });
         if (user) {
+            await this.usersModel.updateOne({ _id: user._id }, { update_session : new Date()})
             return { success: true, userId: user._id };
         }
         return { success: false };
