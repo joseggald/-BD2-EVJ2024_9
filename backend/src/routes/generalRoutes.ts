@@ -31,7 +31,7 @@ const getRoutes = (_instance: string): Router => {
             const { id } = req.body;
             const user = await mongoConnection.getUser(id); 
             if (user) {
-                res.json({ user });
+                res.send(user);
             } else {    
                 res.status(401).json({ error: 'User error' });
             }
@@ -42,14 +42,55 @@ const getRoutes = (_instance: string): Router => {
 
     router.get('/getAllBooks', async (req, res) => {
         try {
-            const books = await mongoConnection.getBooks();
+            const books = await mongoConnection.getAllBooks();
             if (books) {
-                res.json({books: books});
+                res.send(books);
             } else {
-                res.status(401).json({ error: 'Login Error' });
+                res.status(401).json({ error: 'error get' });
             }
         } catch (error) {
-            res.status(500).json({ error: 'Login Error' });
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.get('/getAllGenres', async (req, res) => {
+        try {
+            const books = await mongoConnection.getAllGenres();
+            if (books) {
+                res.send(books);
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.get('/getBooksName', async (req, res) => {
+        try {
+            const { name } = req.body;
+            const books = await mongoConnection.getBooksName(name); 
+            if (books) {
+                res.send(books);
+            } else {    
+                res.status(401).json({ error: 'book error' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'book error' });
+        }
+    });
+
+    router.get('/getGenreBooks', async (req, res) => {
+        try {
+            const { genre } = req.body;
+            const books = await mongoConnection.getGenreBooks(genre);
+            if (books) {
+                res.send(books);
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
         }
     });
 
