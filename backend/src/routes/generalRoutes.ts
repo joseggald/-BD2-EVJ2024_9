@@ -94,6 +94,90 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
+    router.get('/getLowPrices', async (req, res) => {
+        try {
+            const books = await mongoConnection.getLowPrices();
+            if (books) {
+                res.send(books);
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.get('/getHighPrices', async (req, res) => {
+        try {
+            const books = await mongoConnection.getHighPrices();
+            if (books) {
+                res.send(books);
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.get('/getHighRatingBooks', async (req, res) => {
+        try {
+            const books = await mongoConnection.getHighRatingBooks();
+            if (books) {
+                res.send(books);
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.get('/getLowRatingBooks', async (req, res) => {
+        try {
+            const books = await mongoConnection.getLowRatingBooks();
+            if (books) {
+                res.send(books);
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.get('/getBookById', async (req, res) => {
+        try {   
+            const { id } = req.body;
+            const books = await mongoConnection.getBookById(id);
+            
+            if (books) {
+                const authorId = String(books[0].toJSON().author_uid);
+                const author = await mongoConnection.getAuthorById(authorId);
+                const reviews = await mongoConnection.getReviewsBook(id);
+                res.json({ book: books, author: author, reviews: reviews });
+            } else {
+                res.status(401).json({ error: 'error get' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error get' });
+        }
+    });
+
+    router.post('/addReview', async (req, res) => {
+        try {
+            const { idBook, idUser, content, rating } = req.body;
+            const review = await mongoConnection.addReview(idBook, idUser, content, rating);
+            if (review) {
+                res.json({ message: 'Review added' });
+            } else {
+                res.status(401).json({ error: 'error add' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'error add' });
+        }
+    });
+
     return router;
 }
 
