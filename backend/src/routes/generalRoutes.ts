@@ -224,13 +224,49 @@ const getRoutes = (_instance: string): Router => {
         }
     });
     
-    
-    
-    
-    
-    
+    router.post('/register', async (req, res) => {
+        try {
+            const { first_name, last_name, email, phone, address, password, rol } = req.body;
+            const newUser = await mongoConnection.register(first_name, last_name, email, phone, address, password, rol);
+            if (newUser) {
+                res.json({ message: 'User registered successfully', user: newUser });
+            } else {
+                res.status(409).json({ error: 'Email already registered' }); 
+            }
+        } catch (error: unknown) {
+            console.error('Error registering user:', error); 
+            res.status(500).json({ error: 'Error registering user' });
+        }
+    });
 
-
+    router.put('/updateProfile/:id', async (req, res) => {
+        try {
+            const { id } = req.params;
+            const updates = req.body;
+            const updatedUser = await mongoConnection.updateProfile(id, updates);
+            if (updatedUser) {
+                res.json({ message: 'Profile updated successfully', user: updatedUser });
+            } else {
+                res.status(404).json({ error: 'User not found' });
+            }
+        } catch (error: unknown) {
+            console.error('Error updating profile:', error);
+            res.status(500).json({ error: 'Error updating profile' });
+        }
+    });
+    
+    router.get('/getRoles', async (req, res) => {
+        try {
+            const roles = await mongoConnection.getRoles();
+            res.json({ roles });
+        } catch (error: unknown) {
+            console.error('Error getting roles:', error); 
+            res.status(500).json({ error: 'Error getting roles' });
+        }
+    });
+    
+    
+    
     return router;
 }
 
