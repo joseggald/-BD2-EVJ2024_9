@@ -44,7 +44,35 @@ export default class MongoConnection {
         return await this.usersModel.find({ _id: id });
     }
 
-    async getBooks() {
+    async getAllBooks() {
         return await this.booksModel.find();
     }
+
+    async getBooksName(nameBook:string) {
+        const regex = new RegExp(nameBook, 'i');
+        return await this.booksModel.find({ title: regex });
+    }
+
+    async getAllGenres() {
+        return await this.booksModel.aggregate([
+            {
+                $group: {
+                    _id: "$genre",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    genre: "$_id"
+                }
+            }
+        ]).exec();
+    }
+
+    async getGenreBooks(genreBook:string) {
+        const regex = new RegExp(genreBook, 'i');
+        return await this.booksModel.find({ genre: regex });
+    }
+
 }
