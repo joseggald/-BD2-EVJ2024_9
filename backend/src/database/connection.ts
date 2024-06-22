@@ -3,6 +3,7 @@ import { IInstanceInfo } from "./dbInfo";
 import { bookSchema } from "../schemas/books";
 import { reviewSchema } from "../schemas/review";
 import { authorSchema }from "../schemas/author";
+import { userSchema } from "../schemas/user";
 const { ObjectId } = require('mongodb');
 
 export default class MongoConnection {
@@ -24,25 +25,12 @@ export default class MongoConnection {
         this.conn = mongoose.createConnection(URI, { dbName: instance.DATABASE });
         console.log(`Connected to ${instance.DATABASE}`);
 
-        const userSchema = new mongoose.Schema({
-            first_name: { type: String, required: true },
-            last_name: { type: String, required: true },
-            email: { type: String, required: true, unique: true },
-            phone: { type: Number, required: true },
-            address: { type: String, required: true },
-            created_on: { type: Date, default: Date.now },
-            update_session: { type: Date, default: Date.now },
-            password: { type: String, required: true },
-            rol: { type: Schema.Types.ObjectId, required: true },
-            shopping_cart: { type: Schema.Types.Mixed, default: null }
-        }, { versionKey: false });
-
         userSchema.set('toJSON', {
             transform: (doc, ret, options) => {
                 ret.id = ret._id;
                 delete ret._id;
                 delete ret.__v;
-                delete ret.password; // No devolver el campo de contraseña
+                delete ret.password;
                 return ret;
             }
         });
