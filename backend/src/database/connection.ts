@@ -12,6 +12,7 @@ export default class MongoConnection {
     ordersModel
     authorModel
     reviewsModel
+    productsOrderModel
 
     constructor(instance: IInstanceInfo) {
         // URI de la base de datos con la instacia perteneciente y crea la conexion
@@ -26,7 +27,7 @@ export default class MongoConnection {
         this.ordersModel = this.conn.model('orders', new mongoose.Schema());
         this.authorModel = this.conn.model('authors', new mongoose.Schema());
         this.reviewsModel = this.conn.model('reviews', new mongoose.Schema());
-
+        this.productsOrderModel = this.conn.model('products_order', new mongoose.Schema());
 
     }
 
