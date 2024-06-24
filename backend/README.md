@@ -6,4 +6,6 @@
 
 '''npm run dev'''
 
+SE NECESITA EL TOML PARA LAS CREDENCIALES DE LA BASE DE DATOS
+
 - Lenguaje: Typescript
