@@ -4,6 +4,9 @@ import { bookSchema } from "../schemas/books";
 import { reviewSchema } from "../schemas/review";
 import { authorSchema }from "../schemas/author";
 import { userSchema } from "../schemas/user";
+import { ordersSchema } from "../schemas/orders";
+import { productsOrderSchema } from "../schemas/productsOrder";
+import { rolSchema } from "../schemas/rol";
 const { ObjectId } = require('mongodb');
 
 export default class MongoConnection {
@@ -37,20 +40,22 @@ export default class MongoConnection {
 
         // MONGODB SCHEMAS
         this.usersModel = this.conn.model('users', userSchema);
-        this.rolesModel = this.conn.model('roles', new mongoose.Schema());
+        this.rolesModel = this.conn.model('roles', rolSchema);
         this.booksModel = this.conn.model('books', bookSchema);
-        this.ordersModel = this.conn.model('orders', new mongoose.Schema());
+        this.ordersModel = this.conn.model('orders', ordersSchema);
         this.authorModel = this.conn.model('authors', authorSchema);
         this.reviewsModel = this.conn.model('reviews', reviewSchema);
-        this.productsOrderModel = this.conn.model('products_order', new mongoose.Schema());
+        this.productsOrderModel = this.conn.model('products_orders', productsOrderSchema);
     }
 
     // Funciones de la base de datos
     async login(email:string, password:string) {
-        const user = await this.usersModel.findOne({ email, password });
+        const user = await this.usersModel.find({ email, password });
+        const rol = await this.rolesModel.find({_id:user[0].rol});
+
         if (user) {
-            await this.usersModel.updateOne({ _id: user._id }, { update_session : new Date()})
-            return { success: true, userId: user._id };
+            await this.usersModel.updateOne({ _id: user[0]._id }, { update_session : new Date()})
+            return { success: true, userdata: user, rol: rol[0].name};
         }
         return { success: false };
     }
@@ -66,6 +71,35 @@ export default class MongoConnection {
     async getBooksName(nameBook:string) {
         const regex = new RegExp(nameBook, 'i');
         return await this.booksModel.find({ title: regex });
+    }
+
+    async getAuthorName(name: string) {
+        const names = name.split(' ').filter(n => n);
+        const regexes = names.map(n => new RegExp(n, 'i'));
+    
+        let query = [];
+    
+        if (regexes.length === 1) {
+            query.push({ first_name: regexes[0] });
+            query.push({ last_name: regexes[0] });
+        } else if (regexes.length >= 2) {
+            for (let i = 0; i < regexes.length; i++) {
+                for (let j = 0; j < regexes.length; j++) {
+                    if (i !== j) {
+                        query.push({ $and: [{ first_name: regexes[i] }, { last_name: regexes[j] }] });
+                    }
+                }
+            }
+        }
+    
+        return await this.authorModel.find({
+            $or: query
+        });
+    }
+    
+
+    async getAuthor(authorId:string) {
+        return await this.authorModel.find({ _id: authorId});
     }
 
     async getAllGenres() {
@@ -154,9 +188,13 @@ export default class MongoConnection {
         }
     }
 
-    async addBook(title: string, author_uid: string, description: string, genre: string, released_date: string, available: boolean, stock: number, price: number, image_url: string) {
+    async addBook(title: string, author_uid: string, description: string, genre: string, released_date: string, stock: number, price: number, image_url: string) {
         try {
+            var available = false;
             // Verifica la existencia de un libro para no generar duplicados
+            if (stock > 0 ) {
+                available = true;
+            }
             const existingBook = await this.booksModel.findOne({ title, author_uid });
             if (existingBook) {
                 return null; // Devolver null si el libro ya existe
@@ -182,13 +220,15 @@ export default class MongoConnection {
     }
     
     
-    async updateBook(id: string, updates: Partial<{ title: string, author_uid: string, description: string, genre: string, released_date: string, available: boolean, stock: number, price: number, image_url: string }>) {
+    async updateBook(id: string, updates: Partial<{ title: string, author_uid: string, description: string, genre: string, released_date: string, stock: number, price: number, image_url: string }>) {
         try {
+            var available = false;
             // Verificar que el libro existe
             const existingBook = await this.booksModel.findById(id);
             if (!existingBook) {
                 return null; // Devolver null si el libro no existe
             }
+
     
             // Verificar si el nuevo título y autor ya existen en otro libro
             if (updates.title && updates.author_uid) {
@@ -197,7 +237,15 @@ export default class MongoConnection {
                     throw new Error('El libro con el mismo título y autor ya existe.');
                 }
             }
-    
+            if (existingBook.stock > 0) {
+                available = true;
+            }
+            if (updates.stock && updates.stock > 0) {
+                available = true;
+            }
+            if (updates.stock && updates.stock <= 0) {
+                available = false;
+            }
             // Mantener los valores existentes si los nuevos valores no son proporcionados
             const updatedData = {
                 title: updates.title || existingBook.title,
@@ -205,7 +253,7 @@ export default class MongoConnection {
                 description: updates.description || existingBook.description,
                 genre: updates.genre || existingBook.genre,
                 released_date: updates.released_date || existingBook.released_date, 
-                available: updates.available !== undefined ? updates.available : existingBook.available,
+                available: available,
                 stock: updates.stock !== undefined ? updates.stock : existingBook.stock,
                 price: updates.price !== undefined ? updates.price : existingBook.price,
                 image_url: updates.image_url || existingBook.image_url
@@ -338,6 +386,201 @@ export default class MongoConnection {
         await this.authorModel.deleteOne({_id:autorObjectId});
         await this.booksModel.deleteMany({author_uid:autorObjectId})
         return 'Author and associated books deleted successfully'
+    }
+
+    async createOrder(user_uid: string) {
+        var order_number=await this.ordersModel.countDocuments({ user_uid: user_uid }).exec();
+        if (order_number==0) order_number=1;
+        else order_number++;
+
+        const newOrder = await this.ordersModel.create({
+            order_number,
+            user_uid
+        });
+
+        await this.usersModel.updateOne({ _id: user_uid }, { shopping_cart: newOrder._id }).exec();
+        
+        return newOrder;
+    }
+    
+    async addProductOrder(order_uid: string, book_uid: string, quantity: number) {
+        const book = await this.booksModel.findById(book_uid);
+        const productsOrder = await this.productsOrderModel.find({ order_uid: order_uid, book_uid: book_uid })
+        if (!book) {
+            console.log('El libro no existe.');
+            throw new Error('El libro no existe.');
+        }
+        if (book.stock <= quantity) {
+            console.log('No hay suficiente stock.');
+            throw new Error('No hay suficiente stock.');
+        }
+        if (productsOrder.length > 0) {
+            console.log('El libro ya está en el carrito.');
+            throw new Error('El libro ya está en el carrito.');
+        }
+        const total = book.price * quantity;
+        const newProductOrder = await this.productsOrderModel.create({
+            order_uid,
+            book_uid,
+            quantity,
+            total
+        }).catch((error) => {  console.log(error) 
+            throw new Error('Error al agregar el producto al carrito.'); })
+        await this.ordersModel.updateOne({ _id: order_uid }, { $push: { books: newProductOrder._id } }).exec();
+        await this.booksModel.updateOne({ _id: book_uid }, { stock: book.stock - quantity }).exec();
+        const products=await this.ordersModel.find({ _id: order_uid});
+        var totalOrder=0;
+        for (let i=0; i<products[0].books.length; i++) {
+            const product=await this.productsOrderModel.find({ _id: products[0].books[i]});
+            totalOrder+=product[0].total;
+        }
+        await this.ordersModel.updateOne({ _id: order_uid }, { total: totalOrder }).exec();
+        return newProductOrder;
+    }
+
+    async deleteProductOrder(product_uid: string) {
+        const product = await this.productsOrderModel.find({_id:product_uid});
+        try {
+            const orderUpdateResult = await this.ordersModel.updateOne(
+                { _id: product[0].order_uid },
+                { $pull: { books: new ObjectId(product_uid) } }
+            ).exec();
+            
+            if (orderUpdateResult.modifiedCount === 0) {
+                console.log(`No se encontró el pedido con ID ${product[0].order_uid} o el producto ${product_uid} no estaba en el array 'books'.`);
+            } else {
+                console.log(`Producto ${product_uid} eliminado del array 'books' del pedido ${product[0].order_uid}.`);
+            }
+    
+            const productDeleteResult = await this.productsOrderModel.findOneAndDelete({ _id: product_uid }).exec();
+            const orders=await this.ordersModel.find({ _id: product[0].order_uid});
+            var totalOrder=0;
+            for (let i=0; i<orders[0].books.length; i++) {
+                const product=await this.productsOrderModel.find({ _id: orders[0].books[i]});
+                totalOrder+=product[0].total;
+            }
+            await this.ordersModel.updateOne({ _id: product[0].order_uid }, { total: totalOrder }).exec();
+            if (!productDeleteResult) {
+                console.log(`No se encontró el producto con ID ${product_uid} en la colección productsOrder.`);
+            } else {
+                console.log(`Producto ${product_uid} eliminado de la colección productsOrder.`);
+            } 
+            return orderUpdateResult;
+        } catch (error) {
+            console.error(`Error eliminando el producto ${product_uid} del pedido ${product[0].order_uid}:`, error);
+            throw error;
+        }
+    }
+    
+    async updateProductOrder(product_uid: string, quantity: number) {
+        const productOriginal = await this.productsOrderModel.find({_id:product_uid});
+        const book = await this.booksModel.find({_id:productOriginal[0].book_uid});
+        var stock=book[0].stock+productOriginal[0].quantity;
+        if ((stock) < quantity) {
+            console.log('No hay suficiente stock.');
+            return Error('No hay suficiente stock.');
+        }
+        var newTotal=book[0].price*quantity;
+        const product = await this.productsOrderModel.findByIdAndUpdate(product_uid, { quantity: quantity, total:newTotal }, { new: true }).exec();
+        await this.booksModel.updateOne({ _id: productOriginal[0].book_uid }, { stock: stock-quantity }).exec();
+        const products=await this.ordersModel.find({ _id: productOriginal[0].order_uid});
+        var totalOrder=0;
+        for (let i=0; i<products[0].books.length; i++) {
+            const product=await this.productsOrderModel.find({ _id: products[0].books[i]});
+            totalOrder+=product[0].total;
+        }
+        await this.ordersModel.updateOne({ _id: productOriginal[0].order_uid }, { total: totalOrder }).exec();
+        return product;
+    }    
+
+    async getOrderResume(order_uid: string) {
+        const order=await this.ordersModel.find({ _id: order_uid });
+        const products=await this.productsOrderModel.find({ order_uid: order_uid });
+        return { order, products };
+    }
+
+    async getOrdersByUser(user_uid: string) {
+        return await this.ordersModel.find({ user_uid: user_uid, status: { $ne: 'DRAFT' }}).sort({ created_on: -1});
+    }
+
+    async getOrders() {
+        return await this.ordersModel.find({status: { $ne: 'DRAFT' }}).sort({ created_on: -1});
+    }
+
+    async deleteOrder(order_uid: string) {
+        const order = await this.ordersModel.find({_id:order_uid});
+        const products=await this.productsOrderModel.find({ order_uid: order_uid });
+        for (let i=0; i<products.length; i++) {
+            await this.productsOrderModel.deleteOne({ _id: products[i]._id });
+            const book = await this.booksModel.find({_id:products[i].book_uid});
+            await this.booksModel.updateOne({ _id: products[i].book_uid }, { stock: book[0].stock+products[i].quantity }).exec();
+        }
+        const orderDeleteResult = await this.ordersModel.deleteOne({ _id: order_uid }).exec();
+        return orderDeleteResult;
+    }
+
+    async updateStatusOrder(order_uid: string) {
+        const order=await this.ordersModel.find({ _id: order_uid });
+        if(order[0].status=='DRAFT') {
+            await this.ordersModel.updateOne({ _id: order_uid }, { status: 'PROCESS' }).exec();
+            await this.usersModel.updateOne({ _id: order[0].user_uid }, { shopping_cart: null }).exec();
+            return 'Order status updated successfully';
+        }else if(order[0].status=='PROCESS') {
+            await this.ordersModel.updateOne({ _id: order_uid }, { status: 'SENT' }).exec();
+            return 'Order status updated successfully';
+        }else if(order[0].status=='SENT') {
+            await this.ordersModel.updateOne({ _id: order_uid }, { status: 'DELIVERED' }).exec();
+            return 'Order status updated successfully';
+        }
+        
+    }
+
+    async getReportTopBooks(){
+        try {
+            const report = await this.ordersModel.aggregate([
+                { $match: { status: 'DELIVERED' } },
+                { $unwind: '$books' },
+                {
+                    $lookup: {
+                        from: 'products_orders',
+                        localField: 'books',
+                        foreignField: '_id',
+                        as: 'orderDetails'
+                    }
+                },
+                { $unwind: '$orderDetails' },
+                {
+                    $lookup: {
+                        from: 'books',
+                        localField: 'orderDetails.book_uid',
+                        foreignField: '_id',
+                        as: 'bookDetails'
+                    }
+                },
+                { $unwind: '$bookDetails' },
+                {
+                    $group: {
+                        _id: '$bookDetails.title',
+                        totalQuantitySold: { $sum: '$orderDetails.quantity' },
+                        totalSales: { $sum: { $multiply: ['$orderDetails.quantity', '$bookDetails.price'] } }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        title: '$_id',
+                        totalQuantitySold: 1,
+                        totalSales: 1
+                    }
+                },
+                { $sort: { totalSales: -1 } }
+            ]);
+
+            return report;
+        } catch (error) {
+            console.error('Error generating sales report:', error);
+        }
+    
     }
 
 }
