@@ -1,0 +1,28 @@
+.RegisterForm {
+    text-align: center;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  form > div {
+    margin: 10px 0;
+  }
+  
+  label {
+    margin-right: 10px;
+  }
+  
+  input, select {
+    padding: 5px;
+    font-size: 1em;
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+  }
