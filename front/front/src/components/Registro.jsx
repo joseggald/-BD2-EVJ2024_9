@@ -14,9 +14,16 @@ function Registro() {
   });
 
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Para el campo 'phone', asegúrate de que solo se ingresen números
+    if (name === 'phone' && !(/^\d*$/.test(value))) {
+      return; // Evita actualizar el estado si no es un número válido
+    }
+
     setFormData({
       ...formData,
       [name]: value
@@ -25,17 +32,22 @@ function Registro() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const dataToSend = {
+      ...formData,
+      rol: formData.rol === 'administrador' ? '6675c512a910649c4a74cb91' : '6675c538a910649c4a74cb92',
+      phone: formData.phone ? parseInt(formData.phone) : ''
+    };
+
     fetch('http://localhost:5000/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(dataToSend)
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        setSuccessMessage('Registro exitoso.');
+    .then(response => {
+      if (response.ok) {
+        setSuccessMessage('Registro exitoso, Puede iniciar Sesión');
         setFormData({
           first_name: '',
           last_name: '',
@@ -46,12 +58,12 @@ function Registro() {
           rol: ''
         });
       } else {
-        setSuccessMessage('Hubo un problema con el registro.');
+        throw new Error('Error al registrar el usuario.');
       }
     })
     .catch((error) => {
-      console.error('Error:', error);
-      setSuccessMessage('Hubo un problema con el registro.');
+      console.error('Error:', error.message);
+      setErrorMessage('Hubo un problema con el registro: ' + error.message);
     });
   };
 
@@ -73,7 +85,7 @@ function Registro() {
         </div>
         <div>
           <label htmlFor="phone">Phone:</label>
-          <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} />
+          <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} pattern="[0-9]*" />
         </div>
         <div>
           <label htmlFor="address">Address:</label>
@@ -95,6 +107,7 @@ function Registro() {
         <Link to="/" className="btn btn-danger border rounded-50 text-decoration-none">Regresar</Link>
       </form>
       {successMessage && <p>{successMessage}</p>}
+      {errorMessage && <p>{errorMessage}</p>}
     </div>
   );
 }
