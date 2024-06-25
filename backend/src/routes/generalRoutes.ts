@@ -12,7 +12,7 @@ const getRoutes = (_instance: string): Router => {
     const mongoConnection = new MongoConnection(instance);
 
     //Llamada a las funciones con sus rutas
-    router.get('/login', async (req, res) => {
+    router.post('/login', async (req, res) => {
         try {
             const { email, password } = req.body;
             const userAuth = await mongoConnection.login(email, password);
@@ -26,7 +26,7 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
-    router.get('/getUserById', async (req, res) => {
+    router.post('/getUserById', async (req, res) => {
         try {
             const { id } = req.body;
             const user = await mongoConnection.getUser(id); 
@@ -66,7 +66,7 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
-    router.get('/getBooksName', async (req, res) => {
+    router.post('/getBooksName', async (req, res) => {
         try {
             const { name } = req.body;
             const books = await mongoConnection.getBooksName(name); 
@@ -80,7 +80,7 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
-    router.get('/getGenreBooks', async (req, res) => {
+    router.post('/getGenreBooks', async (req, res) => {
         try {
             const { genre } = req.body;
             const books = await mongoConnection.getGenreBooks(genre);
@@ -146,7 +146,7 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
-    router.get('/getBookById', async (req, res) => {
+    router.post('/getBookById', async (req, res) => {
         try {   
             const { id } = req.body;
             const books = await mongoConnection.getBookById(id);
