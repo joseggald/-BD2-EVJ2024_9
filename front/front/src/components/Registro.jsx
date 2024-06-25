@@ -104,7 +104,7 @@ function Registro() {
           </select>
         </div>
         <button type="submit">Register</button>
-        <Link to="/" className="btn btn-danger border rounded-50 text-decoration-none">Regresar</Link>
+        <Link to="/Login" className="btnregistro">Regresar</Link>
       </form>
       {successMessage && <p>{successMessage}</p>}
       {errorMessage && <p>{errorMessage}</p>}
