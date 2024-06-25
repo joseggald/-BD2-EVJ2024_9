@@ -1,6 +1,10 @@
 import mongoose, { Connection, Schema } from "mongoose";
 import { IInstanceInfo } from "./dbInfo";
+import { bookSchema } from "../schemas/books";
+import { reviewSchema } from "../schemas/review";
+import { authorSchema }from "../schemas/author";
 const { ObjectId } = require('mongodb');
+
 export default class MongoConnection {
     // Conexion a la base de datos
     conn: Connection;
@@ -19,28 +23,6 @@ export default class MongoConnection {
         const URI = `mongodb+srv://${instance.USER}:${instance.PASSWORD}@${instance.HOST}/?retryWrites=true&w=majority&appName=ProjectsEnviroment`;
         this.conn = mongoose.createConnection(URI, { dbName: instance.DATABASE });
         console.log(`Connected to ${instance.DATABASE}`);
-
-        // Initial Schema
-        const reviewSchema = new mongoose.Schema({
-            user_uid: { type: Schema.Types.ObjectId, required: true },
-            content: { type: String, required: true },
-            rating: { type: Number, required: true },
-            created_on: { type: Date, default: Date.now },
-            book_uid: { type: Schema.Types.ObjectId, required: true }
-        });
-
-        const bookSchema = new mongoose.Schema({
-            title: { type: String, required: true },
-            author_uid: { type: Schema.Types.ObjectId, required: true },
-            description: { type: String, required: true },
-            genre: { type: String, required: true },
-            released_date: { type: String, required: true }, // Cambiado a String
-            available: { type: Boolean, required: true },
-            stock: { type: Number, required: true },
-            rating: { type: Number, required: true, default: 0 },
-            price: { type: Number, required: true },
-            image_url: { type: String, required: true }
-        });
 
         const userSchema = new mongoose.Schema({
             first_name: { type: String, required: true },
@@ -70,7 +52,7 @@ export default class MongoConnection {
         this.rolesModel = this.conn.model('roles', new mongoose.Schema());
         this.booksModel = this.conn.model('books', bookSchema);
         this.ordersModel = this.conn.model('orders', new mongoose.Schema());
-        this.authorModel = this.conn.model('authors', new mongoose.Schema());
+        this.authorModel = this.conn.model('authors', authorSchema);
         this.reviewsModel = this.conn.model('reviews', reviewSchema);
         this.productsOrderModel = this.conn.model('products_order', new mongoose.Schema());
     }
@@ -336,4 +318,37 @@ export default class MongoConnection {
     }
     
     
+    async getAllAuthors() {
+        return await this.authorModel.find();
+    }
+
+    async getBooksAuthor(authorId: string) {
+        if (!ObjectId.isValid(authorId)) {
+            throw new Error('Id inválido.')
+        }
+        const autorObjectId = new ObjectId(authorId)
+        return await this.booksModel.find({author_uid:autorObjectId});
+    }
+    
+    async addAuthor(first_name:string, last_name:string, biography:string, age:number) {
+        const newAuthor = await this.authorModel.create({
+            first_name,
+            last_name,
+            biography,
+            age
+        });
+        return newAuthor;
+    }
+
+    async deleteAutor(authorId: string){
+        if (!ObjectId.isValid(authorId)) {
+            throw new Error('Id inválido.')
+        }
+
+        const autorObjectId = new ObjectId(authorId)
+        await this.authorModel.deleteOne({_id:autorObjectId});
+        await this.booksModel.deleteMany({author_uid:autorObjectId})
+        return 'Author and associated books deleted successfully'
+    }
+
 }

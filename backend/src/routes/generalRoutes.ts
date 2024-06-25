@@ -265,8 +265,63 @@ const getRoutes = (_instance: string): Router => {
         }
     });
     
-    
-    
+    router.get('/getAllAuthors', async(req, res) => {
+        try {
+            const authors = await mongoConnection.getAllAuthors()
+            res.json(authors)
+        }catch {
+            res.status(500).json({ error: 'Failed to fetch authors' });
+        }
+    });
+
+    router.get('/getBooksAuthor', async(req, res) => {
+        try {
+            const authorId = req.body.authorId;
+            console.log(authorId)
+
+            if (!authorId) {
+                return res.status(400).json({ error: 'AuthorId is required' });
+            }
+
+            const booksAuthor = await mongoConnection.getBooksAuthor(authorId)
+            res.json(booksAuthor)
+        }catch {
+            res.status(500).json({ error: 'Failed to fetch books by author' });
+        }
+    });
+
+    router.post('/addAuthor', async(req, res) => {
+        try {
+            const { first_name, last_name, biography, age } = req.body;
+            console.log(first_name, last_name, biography, age)
+
+            if (!first_name || !last_name || !biography || typeof age !== 'number') {
+                return res.status(400).json({ error: 'Invalid data provided' });
+            }
+
+            const result = await mongoConnection.addAuthor(first_name, last_name, biography, age)
+            res.json(result)
+        }catch {
+            res.status(500).json({ error: 'Failed to add author' });
+        }
+    });
+
+    router.delete('/deleteAuthor', async(req, res) => {
+        try {
+            const authorId = req.body.authorId;
+            console.log(authorId)
+
+            if (!authorId) {
+                return res.status(400).json({ error: 'AuthorId is required' });
+            }
+
+            const result = await mongoConnection.deleteAutor(authorId)
+            res.json({ message: result})
+        }catch {
+            res.status(500).json({ error: 'Failed to delete author' });
+        }
+    });
+
     return router;
 }
 
