@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './css/Login.css';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -13,36 +16,36 @@ function Login() {
     console.log('Contraseña:', password);
 
     try {
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: username,
-          password: password,
-        }),
+      const response = await axios.get('http://localhost:5000/login', {
+        email: username,
+        password: password,
+    
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      console.log('Información enviada al backend:', response.config);
+      if (response.status === 200) {
+        const data = response.data;
         console.log('Sesión iniciada correctamente');
         
         // Guardar el ID del usuario en localStorage
         localStorage.setItem('userId', data.userData[0].id);
+        setSuccessMessage('Registro exitoso');
+        setErrorMessage('');
 
         // Redirigir basado en el rol
         if (data.rol === 'Admin') {
-          //navigate('/admin');
-          console.log('Bienvenido Admin');
+          navigate('/admin');
         } else {
-          //navigate('/client');
-          console.log('Bienvenido Cliente');
+          navigate('/client');
         }
       } else {
+        setErrorMessage('Error al iniciar sesión');
+        setSuccessMessage('');
         console.error('Error al iniciar sesión');
       }
     } catch (error) {
+      setErrorMessage('Error al comunicarse con la API');
+      setSuccessMessage('');
       console.error('Error al comunicarse con la API', error);
     }
   };
@@ -52,6 +55,8 @@ function Login() {
       <div className="login-container">
         <div className="login-form">
           <h2>Login</h2>
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
+          {successMessage && <p className="success-message">{successMessage}</p>}
           <form onSubmit={handleSubmit}>
             <label htmlFor="username">E-mail:</label>
             <input
