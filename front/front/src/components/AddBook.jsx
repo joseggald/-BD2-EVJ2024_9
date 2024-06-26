@@ -35,7 +35,7 @@ function AddBook() {
     if (author) {
       setSelectedAuthorFirstName(author.first_name);
       try {
-        const response = await axios.get(`http://localhost:5000/getAuthorName/${authorId}`);
+        const response = await axios.post('http://localhost:5000/getAuthorName',{name : authorId});
         const firstName = response.data.first_name;
         setFormData({
           ...formData,

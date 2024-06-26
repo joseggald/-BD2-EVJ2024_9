@@ -29,6 +29,7 @@ function Login() {
         
         // Guardar el ID del usuario en localStorage
         localStorage.setItem('userId', data.userData[0].id);
+        localStorage.setItem('userRole', data.userData[0].rol);
         setSuccessMessage('Registro exitoso');
         setErrorMessage('');
 

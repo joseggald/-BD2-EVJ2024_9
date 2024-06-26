@@ -17,7 +17,7 @@ function OrdersPage() {
       }
 
       try {
-        const response = await axios.post('http://localhost:5000/getOrdersByUser', { user_uid: '6678b0b34984fffa5d3e6d9b' });
+        const response = await axios.post('http://localhost:5000/getOrdersByUser', { user_uid: userId });
         setOrders(response.data);
         setLoading(false);
       } catch (error) {
@@ -63,16 +63,16 @@ function OrdersPage() {
 
   return (
     <div className="OrdersPage">
-      <h2>Orders</h2>
-      {orders.length === 0 && <p>No orders found.</p>}
+      <h2>Historial de Pedidos</h2>
+      {orders.length === 0 && <p>No tiene Órdenes, lo invitamos a comprar nuestros libros para que aparezcan sus pedidos en esta ventana.</p>}
       {orders.map(order => (
         <div key={order._id} className="order-item">
-          <p><strong>Order Number:</strong> {order.order_number}</p>
-          <p><strong>Description:</strong> {order.description}</p>
-          <p><strong>Status:</strong> {order.status}</p>
+          <p><strong>Número de Orden</strong> {order.order_number}</p>
+          <p><strong>Descripción:</strong> {order.description}</p>
+          <p><strong>Estado:</strong> {order.status}</p>
           <p><strong>Total:</strong> ${order.total.toFixed(2)}</p>
-          <p><strong>Created On:</strong> {new Date(order.created_on).toLocaleDateString()}</p>
-          {order.status === 'PROCESS' && (
+          <p><strong>Fecha de Creación:</strong> {new Date(order.created_on).toLocaleDateString()}</p>
+          {order.status === 'Sent' && (
             <button onClick={() => handleMarkDelivered(order._id)}>Marcar como entregada</button>
           )}
           <hr />
