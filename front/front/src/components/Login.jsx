@@ -16,7 +16,7 @@ function Login() {
     console.log('Contraseña:', password);
 
     try {
-      const response = await axios.get('http://localhost:5000/login', {
+      const response = await axios.post('http://localhost:5000/login', {
         email: username,
         password: password,
     
@@ -36,7 +36,7 @@ function Login() {
         if (data.rol === 'Admin') {
           navigate('/admin');
         } else {
-          navigate('/client');
+          navigate('/UserProfile');
         }
       } else {
         setErrorMessage('Error al iniciar sesión');
