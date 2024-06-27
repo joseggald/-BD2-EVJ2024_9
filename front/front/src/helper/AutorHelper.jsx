@@ -9,7 +9,11 @@ const GetOnlyAuthor = async (data) =>{
         body: JSON.stringify(data)
     };
     let response = await fetch(url,options)
-    return await response.json()
+    let res = await response.json()
+    if(response.status === 500){
+        throw new Error(res.error);
+    }
+    return res
 }
 
 const GetAllAuthors = async () =>{
@@ -22,13 +26,17 @@ const GetAllAuthors = async () =>{
 		}
     }
     let response = await fetch(url,options)
-    return await response.json()
+    let res = await response.json()
+    if(response.status === 500){
+        throw new Error(res.error);
+    }
+    return res
 }
 
-const DeleteAuthor = async (data) =>{
-    const url = `http://localhost:5000/deleteAuthor`
+const GetBooksAuthor = async (data) =>{
+    const url = `http://localhost:5000/getBooksAuthor`
     const options = {
-        method: 'DELETE',
+        method: 'POST',
         headers: {
 			'Accept': 'application/json',
 			'Content-Type': 'application/json',
@@ -36,8 +44,12 @@ const DeleteAuthor = async (data) =>{
         body: JSON.stringify(data)
     };
     let response = await fetch(url,options)
-    return await response.json()
+    let res = await response.json()
+    if(response.status === 500){
+        throw new Error(res.error);
+    }
+    return res
 }
 
 
-export default { GetAllAuthors, GetOnlyAuthor, DeleteAuthor};
+export default { GetAllAuthors, GetOnlyAuthor, GetBooksAuthor};
