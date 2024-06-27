@@ -75,3 +75,10 @@ button:focus-visible {
 .w-card{
   width: 18rem !important;
 }
+.cursor_pinter{
+  cursor: pointer;
+  color: #535bf2;
+}
+.c_yellow{
+  color: yellow;
+}

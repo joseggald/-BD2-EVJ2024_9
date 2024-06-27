@@ -13,6 +13,7 @@ import SidebarLayout from './components/SidebarLayout';
 import Authors from './components/autor/Autor';
 import OrdersPageAdmin from './components/HistorialPedidosAdmin';
 import MenuAdmin from './components/MenuAdmin';
+import Books from './components/book/Book';
 
 function App() {
   return (
@@ -59,6 +60,11 @@ function App() {
         <Route path='/Authors' element={
           <SidebarLayout>
             <Authors />
+          </SidebarLayout>
+        } />
+        <Route path='/Books' element={
+          <SidebarLayout>
+            <Books />
           </SidebarLayout>
         } />
       </Routes>
