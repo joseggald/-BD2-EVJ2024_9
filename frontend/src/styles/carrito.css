@@ -1,0 +1,37 @@
+.carrito-container {
+  max-width: 100%;
+  overflow-y: scroll;
+  padding: 20px;
+  margin: 0 auto;
+  height: calc(100vh - 10px); /* Ajusta según el diseño para mantener espacio para otros elementos en la página */
+  scrollbar-width: thin; /* Ancho del scrollbar */
+  scrollbar-color: rgba(255, 255, 255, 0.5) rgba(255, 255, 255, 0); /* Color del scrollbar */
+}
+
+.author-container {
+  max-width: 100%;
+  overflow-y: scroll;
+  padding: 20px;
+  margin: 0 auto;
+  height: calc(100vh - 10px); /* Ajusta según el diseño para mantener espacio para otros elementos en la página */
+  scrollbar-width: thin; /* Ancho del scrollbar */
+  scrollbar-color: rgba(224, 224, 224, 0.5) rgba(255, 255, 255, 0); /* Color del scrollbar */
+}
+.cards-container {
+ 
+  overflow-y: scroll;
+  scrollbar-width: thin; /* Ancho del scrollbar */
+  scrollbar-color: rgba(255, 255, 255, 0.5) rgba(255, 255, 255, 0); /* Color del scrollbar */
+}
+
+.cards {
+  border: 2px;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px;
+  background-color: #f8f9fa;
+}
+/* Estilos específicos para navegadores WebKit (Safari, Chrome) */
+.carrito-container::-webkit-scrollbar {
+  width: 5px; /* Ancho del scrollbar */
+}

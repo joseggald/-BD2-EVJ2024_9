@@ -65,7 +65,42 @@ export default class MongoConnection {
     }
 
     async getAllBooks() {
-        return await this.booksModel.find();
+        return await this.booksModel.aggregate([
+            {
+                $lookup: {
+                    from: 'authors', // Nombre de la colección de autores en la base de datos
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true // Esto asegura que los libros sin autores aún sean incluidos
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getBooksName(nameBook:string) {
@@ -495,7 +530,59 @@ export default class MongoConnection {
 
     async getOrderResume(order_uid: string) {
         const order=await this.ordersModel.find({ _id: order_uid });
-        const products=await this.productsOrderModel.find({ order_uid: order_uid });
+        const products = await this.productsOrderModel.aggregate([
+            {
+              $match: { order_uid: new ObjectId(order_uid) } // Filtro para encontrar las órdenes por order_uid
+            },
+            {
+              $lookup: {
+                from: 'books', // Colección books
+                localField: 'book_uid',
+                foreignField: '_id',
+                as: 'book'
+              }
+            },
+            {
+              $unwind: '$book' // Desenrollar el array resultado de $lookup (ya que es un solo libro por orden)
+            },
+            {
+              $lookup: {
+                from: 'authors', // Colección authors
+                localField: 'book.author_uid',
+                foreignField: '_id',
+                as: 'author'
+              }
+            },
+            {
+              $unwind: '$author' // Desenrollar el array resultado de $lookup (ya que es un solo autor por libro)
+            },
+            {
+              $project: {
+                _id: 1, // Opcional: Excluir el _id del resultado final si no es necesario
+                order_uid: 1,
+                quantity: 1,
+                total: 1,
+                book: {
+                  title: 1,
+                  description: 1,
+                  genre: 1,
+                  released_date: 1,
+                  available: 1,
+                  stock: 1,
+                  rating: 1,
+                  price: 1,
+                  image_url: 1
+                },
+                author: {
+                  first_name: 1,
+                  last_name: 1,
+                  biography: 1,
+                  age: 1
+                }
+              }
+            }
+          ]);
+        
         return { order, products };
     }
 

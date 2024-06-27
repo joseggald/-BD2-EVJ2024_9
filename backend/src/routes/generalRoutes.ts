@@ -340,7 +340,7 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
-    router.delete('/deleteProductFromCart', async(req, res) => {
+    router.post('/deleteProductFromCart', async(req, res) => {
         try {
             const { product_uid } = req.body;
             const result = await mongoConnection.deleteProductOrder(product_uid);
