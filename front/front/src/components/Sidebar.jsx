@@ -9,11 +9,12 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <ul>
-        {userRole === 'admin' ? (
+        {userRole === 'Admin' ? (
           <>
             <li><Link to="/AddBook">Add Book</Link></li>
             <li><Link to="/UpdateBook">Update Book</Link></li>
             <li><Link to="/DeleteBook">Delete Book</Link></li>
+            <li><Link to="/OrdersPageAdmin">Historial Compras Usuarios</Link></li>
           </>
         ) : (
           <>

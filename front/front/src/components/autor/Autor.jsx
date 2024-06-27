@@ -29,10 +29,13 @@ const Authors = () => {
         <div className="container pt-0">
             {
                 viewType === 'all' ?
-                <AllAuthors setViewType={setViewType} setAutorId={setAutorId}/>
+                <AllAuthors userRol={userRol} setViewType={setViewType} setAutorId={setAutorId}/>
                 :
                 viewType === 'only'?
-                <OnlyAuthor setViewType={setViewType} autorId={autorId}/>
+                <OnlyAuthor userRol={userRol} setViewType={setViewType} setAutorId={setAutorId}/>
+                :
+                viewType === 'add' ?
+                ''
                 :
                 setViewType('all')
             }

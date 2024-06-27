@@ -29,13 +29,14 @@ function Login() {
         
         // Guardar el ID del usuario en localStorage
         localStorage.setItem('userId', data.userData[0].id);
-        localStorage.setItem('userRole', data.userData[0].rol);
+        localStorage.setItem('userRole', data.rol);
+        //console.log("AQUI "+JSON.stringify(data, null, 2))
         setSuccessMessage('Registro exitoso');
         setErrorMessage('');
 
         // Redirigir basado en el rol
         if (data.rol === 'Admin') {
-          navigate('/admin');
+          navigate('/MenuAdmin');
         } else {
           navigate('/UserProfile');
         }

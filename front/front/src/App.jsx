@@ -11,6 +11,8 @@ import OrdersPage from './components/HistorialPedidosUser';
 import DeleteBook from './components/DeleteBook';
 import SidebarLayout from './components/SidebarLayout';
 import Authors from './components/autor/Autor';
+import OrdersPageAdmin from './components/HistorialPedidosAdmin';
+import MenuAdmin from './components/MenuAdmin';
 
 function App() {
   return (
@@ -41,6 +43,16 @@ function App() {
         <Route path='/OrdersPage' element={
           <SidebarLayout>
             <OrdersPage />
+          </SidebarLayout>
+        } />
+        <Route path='/OrdersPageAdmin' element={
+          <SidebarLayout>
+            <OrdersPageAdmin />
+          </SidebarLayout>
+        } />
+        <Route path='/MenuAdmin' element={
+          <SidebarLayout>
+            <MenuAdmin />
           </SidebarLayout>
         } />
 
