@@ -10,6 +10,7 @@ import UserProfile from './components/Profiel';
 import OrdersPage from './components/HistorialPedidosUser';
 import DeleteBook from './components/DeleteBook';
 import SidebarLayout from './components/SidebarLayout';
+import Authors from './components/autor/Autor';
 
 function App() {
   return (
@@ -40,6 +41,12 @@ function App() {
         <Route path='/OrdersPage' element={
           <SidebarLayout>
             <OrdersPage />
+          </SidebarLayout>
+        } />
+
+        <Route path='/Authors' element={
+          <SidebarLayout>
+            <Authors />
           </SidebarLayout>
         } />
       </Routes>
