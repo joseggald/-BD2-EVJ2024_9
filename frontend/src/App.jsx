@@ -10,6 +10,8 @@ import Authors from './components/Authors';
 import AuthorDetails from './components/AuthorDetails';
 import Books from './components/Books';
 import BookDetails from './components/BookDetails';
+import History from './components/History';
+import Reports from './components/Reports';
 function App() {
   return (
     <BrowserRouter>
@@ -24,6 +26,8 @@ function App() {
           <Route path="autores/:id" element={<AuthorDetails />} />
           <Route path="libros" element={<Books />} />
           <Route path="libros/:id" element={<BookDetails />} />
+          <Route path="historial-compras" element={<History />} />
+          <Route path="reportes" element={<Reports />} />
         </Route>
       </Routes>
     </BrowserRouter>
