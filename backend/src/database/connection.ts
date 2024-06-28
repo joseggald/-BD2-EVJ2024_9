@@ -1,4 +1,4 @@
-import mongoose, { Connection, Schema } from "mongoose";
+import mongoose, { Connection, Schema  } from "mongoose";
 import { IInstanceInfo } from "./dbInfo";
 import { bookSchema } from "../schemas/books";
 import { reviewSchema } from "../schemas/review";
@@ -65,12 +65,87 @@ export default class MongoConnection {
     }
 
     async getAllBooks() {
-        return await this.booksModel.find();
+        return await this.booksModel.aggregate([
+            {
+                $lookup: {
+                    from: 'authors', // Nombre de la colección de autores en la base de datos
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true // Esto asegura que los libros sin autores aún sean incluidos
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            },{
+                $sort: { _id: 1 } // Orden ascendente por _id
+              }
+        ]);
     }
 
     async getBooksName(nameBook:string) {
         const regex = new RegExp(nameBook, 'i');
-        return await this.booksModel.find({ title: regex });
+        return await this.booksModel.aggregate([
+            {
+                $match: { title: regex }
+            },
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getAuthorName(name: string) {
@@ -121,46 +196,267 @@ export default class MongoConnection {
 
     async getGenreBooks(genreBook:string) {
         const regex = new RegExp(genreBook, 'i');
-        return await this.booksModel.find({ genre: regex });
+        return await this.booksModel.aggregate([
+            {
+                $match: { genre: regex }
+            },
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getLowPrices() {
-        return await this.booksModel.find().sort({ price: 1 })
+        return await this.booksModel.aggregate([
+            {
+                $sort: { price: 1 }
+            },
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getHighPrices() {
-        return await this.booksModel.find().sort({ price: -1 })
+        return await this.booksModel.aggregate([
+            {
+                $sort: { price: -1 }
+            },
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getHighRatingBooks() {
-        return await this.booksModel.find().sort({ rating: -1 })
+        return await this.booksModel.aggregate([
+            {
+                $sort: { rating: -1 }
+            },
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getLowRatingBooks() {
-        return await this.booksModel.find().sort({ rating: 1 })
+        return await this.booksModel.aggregate([
+            {
+                $sort: { rating: 1 }
+            },
+            {
+                $lookup: {
+                    from: 'authors',
+                    localField: 'author_uid',
+                    foreignField: '_id',
+                    as: 'author'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$author',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    author_uid: 1,
+                    description: 1,
+                    genre: 1,
+                    released_date: 1,
+                    available: 1,
+                    stock: 1,
+                    rating: 1,
+                    price: 1,
+                    image_url: 1,
+                    'author._id': 1,
+                    'author.first_name': 1,
+                    'author.last_name': 1,
+                    'author.biography': 1,
+                    'author.age': 1
+                }
+            }
+        ]);
     }
 
     async getBookById(id:string) {
-        return await this.booksModel.find({ _id: id });
+        return await this.booksModel.find({ _id: id});
     }
 
     async getAuthorById(id:string) {
         return await this.authorModel.find({ _id:id });
     }
 
-    async getReviewsBook(id:string) {
-        return await this.reviewsModel.find({ book_uid: id });
-    }
+    async getReviewsBook(id: string) {
+        try {
+          const reviews = await this.reviewsModel.aggregate([
+            { $match: { book_uid: new ObjectId(id) } },
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'user_uid',
+                foreignField: '_id',
+                as: 'user',
+              },
+            },
+            {
+              $unwind: '$user' // Desenrollar el array 'user' resultante del $lookup
+            },
+            {
+              $project: {
+                _id: 1,
+                content: 1,
+                rating: 1,
+                created_on: 1,
+                user_name: { $concat: ['$user.first_name', ' ', '$user.last_name'] }, // Concatenar nombres y apellidos
+                user_email: '$user.email',
+              },
+            },
+          ]);
+      
+          return reviews;
+        } catch (error) {
+          console.error('Error al obtener reseñas del libro', error);
+          throw new Error('No se pudieron obtener las reseñas del libro');
+        }
+      }
 
     async addReview(idBook: string, idUser: string, content: string, rating: number) {
         try {
+            console.log('idUser:', idUser);
             const review = await this.reviewsModel.create({
                 user_uid: idUser,
                 content,
                 rating,
                 book_uid: idBook 
             });
-    
+            console.log('review:', review);
             if (review) {
                 const ratingBook = await this.reviewsModel.aggregate([
                     { $match: { book_uid: new ObjectId(idBook) } },
@@ -404,43 +700,77 @@ export default class MongoConnection {
     }
     
     async addProductOrder(order_uid: string, book_uid: string, quantity: number) {
-        const book = await this.booksModel.findById(book_uid);
-        const productsOrder = await this.productsOrderModel.find({ order_uid: order_uid, book_uid: book_uid })
-        if (!book) {
+        try {
+          // Buscar el libro por su _id
+          const book = await this.booksModel.findById(book_uid);
+          if (!book) {
             console.log('El libro no existe.');
             throw new Error('El libro no existe.');
-        }
-        if (book.stock <= quantity) {
+          }
+          if (book.stock <= quantity) {
             console.log('No hay suficiente stock.');
             throw new Error('No hay suficiente stock.');
-        }
-        if (productsOrder.length > 0) {
-            console.log('El libro ya está en el carrito.');
-            throw new Error('El libro ya está en el carrito.');
-        }
-        const total = book.price * quantity;
-        const newProductOrder = await this.productsOrderModel.create({
+          }
+      
+          // Verificar si el producto ya está en la orden
+          const productsOrder = await this.productsOrderModel.find({ order_uid, book_uid });
+          if (productsOrder.length > 0) {
+            console.log('El libro ya está en la orden.');
+            throw new Error('El libro ya está en la orden.');
+          }
+      
+          const total = book.price * quantity;
+      
+          // Crear el nuevo producto de la orden
+          const newProductOrder = await this.productsOrderModel.create({
             order_uid,
             book_uid,
             quantity,
             total
-        }).catch((error) => {  console.log(error) 
-            throw new Error('Error al agregar el producto al carrito.'); })
-        await this.ordersModel.updateOne({ _id: order_uid }, { $push: { books: newProductOrder._id } }).exec();
-        await this.booksModel.updateOne({ _id: book_uid }, { stock: book.stock - quantity }).exec();
-        const products=await this.ordersModel.find({ _id: order_uid});
-        var totalOrder=0;
-        for (let i=0; i<products[0].books.length; i++) {
-            const product=await this.productsOrderModel.find({ _id: products[0].books[i]});
-            totalOrder+=product[0].total;
+          });
+      
+          // Actualizar la orden para agregar el nuevo producto
+          await this.ordersModel.updateOne({ _id: order_uid }, { $push: { books: newProductOrder._id } });
+      
+          // Obtener la orden actualizada con los libros poblados
+          const order = await this.ordersModel.findById(order_uid).populate('books');
+          if (!order) {
+            console.log('La orden no existe.');
+            throw new Error('La orden no existe.');
+          }
+
+          const orderDescription = await Promise.all(order.books.map(async (productOrder: any) => {
+            const product = await this.productsOrderModel.find({ _id: productOrder });
+            const productBook = await this.booksModel.find({_id:product[0].book_uid});
+            if (!productBook) {
+              console.log('El libro del producto en la orden no existe.');
+              throw new Error('El libro del producto en la orden no existe.');
+            }
+            return `${product[0].quantity} x ${productBook[0].title}`;
+            }));
+            const orders1=await this.ordersModel.find({ _id: order_uid});
+            var totalOrder=0;
+            for (let i=0; i<orders1[0].books.length; i++) {
+                const product=await this.productsOrderModel.find({ _id: orders1[0].books[i]});
+                console.log('product:', product[0].total);
+                totalOrder+=product[0].total;
+            }
+          
+            await this.ordersModel.updateOne({ _id: order_uid }, { description: orderDescription.join(', '), total: totalOrder }).exec();
+      
+          return newProductOrder;
+        } catch (error) {
+          console.error('Error al agregar el producto a la orden:', error);
+          throw new Error('Error al agregar el producto a la orden.');
         }
-        await this.ordersModel.updateOne({ _id: order_uid }, { total: totalOrder }).exec();
-        return newProductOrder;
-    }
+      }
+      
+      
 
     async deleteProductOrder(product_uid: string) {
         const product = await this.productsOrderModel.find({_id:product_uid});
         try {
+            const book = await this.booksModel.findByIdAndUpdate({ _id: product[0].book_uid }, { $inc: { stock: product[0].quantity }}).exec();
             const orderUpdateResult = await this.ordersModel.updateOne(
                 { _id: product[0].order_uid },
                 { $pull: { books: new ObjectId(product_uid) } }
@@ -459,7 +789,23 @@ export default class MongoConnection {
                 const product=await this.productsOrderModel.find({ _id: orders[0].books[i]});
                 totalOrder+=product[0].total;
             }
-            await this.ordersModel.updateOne({ _id: product[0].order_uid }, { total: totalOrder }).exec();
+            const order = await this.ordersModel.findById(product[0].order_uid).populate('books');
+            if (!order) {
+              console.log('La orden no existe.');
+              throw new Error('La orden no existe.');
+            }
+    
+            const orderDescription = await Promise.all(order.books.map(async (productOrder: any) => {
+              const product1 = await this.productsOrderModel.find({ _id: productOrder });
+              const productBook = await this.booksModel.find({_id:product1[0].book_uid});
+              if (!productBook) {
+                console.log('El libro del producto en la orden no existe.');
+                throw new Error('El libro del producto en la orden no existe.');
+              }
+              return `${product1[0].quantity} x ${productBook[0].title}`;
+              }));
+
+            await this.ordersModel.updateOne({ _id: product[0].order_uid }, {description:orderDescription.join(', '), total: totalOrder }).exec();
             if (!productDeleteResult) {
                 console.log(`No se encontró el producto con ID ${product_uid} en la colección productsOrder.`);
             } else {
@@ -484,18 +830,86 @@ export default class MongoConnection {
         const product = await this.productsOrderModel.findByIdAndUpdate(product_uid, { quantity: quantity, total:newTotal }, { new: true }).exec();
         await this.booksModel.updateOne({ _id: productOriginal[0].book_uid }, { stock: stock-quantity }).exec();
         const products=await this.ordersModel.find({ _id: productOriginal[0].order_uid});
+        // Obtener la orden actualizada con los libros poblados
+        const order = await this.ordersModel.findById(productOriginal[0].order_uid).populate('books');
+        if (!order) {
+          console.log('La orden no existe.');
+          throw new Error('La orden no existe.');
+        }
+
+        const orderDescription = await Promise.all(order.books.map(async (productOrder: any) => {
+          const product1 = await this.productsOrderModel.find({ _id: productOrder });
+          const productBook = await this.booksModel.find({_id:product1[0].book_uid});
+          if (!productBook) {
+            console.log('El libro del producto en la orden no existe.');
+            throw new Error('El libro del producto en la orden no existe.');
+          }
+          return `${product1[0].quantity} x ${productBook[0].title}`;
+          }));
         var totalOrder=0;
         for (let i=0; i<products[0].books.length; i++) {
             const product=await this.productsOrderModel.find({ _id: products[0].books[i]});
             totalOrder+=product[0].total;
         }
-        await this.ordersModel.updateOne({ _id: productOriginal[0].order_uid }, { total: totalOrder }).exec();
+        await this.ordersModel.updateOne({ _id: productOriginal[0].order_uid }, {description: orderDescription.join(', '), total: totalOrder }).exec();
         return product;
     }    
 
     async getOrderResume(order_uid: string) {
         const order=await this.ordersModel.find({ _id: order_uid });
-        const products=await this.productsOrderModel.find({ order_uid: order_uid });
+        const products = await this.productsOrderModel.aggregate([
+            {
+              $match: { order_uid: new ObjectId(order_uid) } // Filtro para encontrar las órdenes por order_uid
+            },
+            {
+              $lookup: {
+                from: 'books', // Colección books
+                localField: 'book_uid',
+                foreignField: '_id',
+                as: 'book'
+              }
+            },
+            {
+              $unwind: '$book' // Desenrollar el array resultado de $lookup (ya que es un solo libro por orden)
+            },
+            {
+              $lookup: {
+                from: 'authors', // Colección authors
+                localField: 'book.author_uid',
+                foreignField: '_id',
+                as: 'author'
+              }
+            },
+            {
+              $unwind: '$author' // Desenrollar el array resultado de $lookup (ya que es un solo autor por libro)
+            },
+            {
+              $project: {
+                _id: 1, // Opcional: Excluir el _id del resultado final si no es necesario
+                order_uid: 1,
+                quantity: 1,
+                total: 1,
+                book: {
+                  title: 1,
+                  description: 1,
+                  genre: 1,
+                  released_date: 1,
+                  available: 1,
+                  stock: 1,
+                  rating: 1,
+                  price: 1,
+                  image_url: 1
+                },
+                author: {
+                  first_name: 1,
+                  last_name: 1,
+                  biography: 1,
+                  age: 1
+                }
+              }
+            }
+          ]);
+        
         return { order, products };
     }
 
@@ -504,8 +918,45 @@ export default class MongoConnection {
     }
 
     async getOrders() {
-        return await this.ordersModel.find({status: { $ne: 'DRAFT' }}).sort({ created_on: -1});
-    }
+        try {
+          const orders = await this.ordersModel.aggregate([
+            {
+              $match: { status: { $ne: 'DRAFT' } }
+            },
+            {
+              $sort: { created_on: -1 }
+            },
+            {
+              $lookup: {
+                from: 'users', // Nombre de la colección de usuarios en tu base de datos
+                localField: 'user_uid',
+                foreignField: '_id',
+                as: 'user'
+              }
+            },
+            {
+              $unwind: '$user'
+            },
+            {
+              $project: {
+                _id: 1,
+                order_number: 1,
+                description: 1,
+                status: 1,
+                total: 1,
+                user: { $mergeObjects: ['$user', {}] }, // Asegura que los campos de usuario se agreguen correctamente
+                books: 1,
+                created_on: 1,
+                update_on: 1
+              }
+            }
+          ]);
+          return orders;
+        } catch (error) {
+          console.error('Error fetching orders:', error);
+          throw new Error('Unable to fetch orders');
+        }
+      }
 
     async deleteOrder(order_uid: string) {
         const order = await this.ordersModel.find({_id:order_uid});

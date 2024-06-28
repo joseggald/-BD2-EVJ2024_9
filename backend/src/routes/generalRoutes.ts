@@ -150,7 +150,6 @@ const getRoutes = (_instance: string): Router => {
         try {   
             const { id } = req.body;
             const books = await mongoConnection.getBookById(id);
-            
             if (books) {
                 const authorId = String(books[0].toJSON().author_uid);
                 const author = await mongoConnection.getAuthorById(authorId);
@@ -340,7 +339,7 @@ const getRoutes = (_instance: string): Router => {
         }
     });
 
-    router.delete('/deleteProductFromCart', async(req, res) => {
+    router.post('/deleteProductFromCart', async(req, res) => {
         try {
             const { product_uid } = req.body;
             const result = await mongoConnection.deleteProductOrder(product_uid);
